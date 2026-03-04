@@ -1,0 +1,60 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String
+  balance   Float    @default(0)
+  createdAt DateTime @default(now())
+  bets      Bet[]
+  ledgers   Ledger[]
+}
+
+enum BetStatus {
+  PLACED
+  SETTLED
+  CANCELLED
+}
+
+model Bet {
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  gameId    String
+  amount    Float
+  status    BetStatus @default(PLACED)
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id])
+}
+
+enum LedgerType {
+  DEPOSIT
+  BET_DEBIT
+  BET_CREDIT
+  BET_REFUND
+}
+
+model Ledger {
+  id             Int        @id @default(autoincrement())
+  userId         Int
+  type           LedgerType
+  amount         Float
+  referenceType  String?    // e.g. "Bet", "Deposit"
+  referenceId    String?    // e.g. betId or deposit idempotency key
+  createdAt      DateTime   @default(now())
+  user           User       @relation(fields: [userId], references: [id])
+}
+
+model IdempotencyKey {
+  id             Int      @id @default(autoincrement())
+  key            String   @unique
+  userId         Int?
+  requestHash    String?  // hash of body for 409 when same key different body
+  responseStatus Int
+  responseBody   String?  // JSON snapshot of response
+  createdAt      DateTime @default(now())
+}
