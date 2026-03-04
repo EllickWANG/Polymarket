@@ -1,0 +1,10 @@
+node_modules
+.next
+.git
+*.md
+!README.md
+coverage
+.vercel
+*.log
+.DS_Store
+package-lock.json
